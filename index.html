@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Personal Bills &amp; Debt Tracker</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='12' fill='%231f3a5f'/%3E%3Cpath d='M18 46V30m14 16V18m14 28V26' stroke='%23fff' stroke-width='6' stroke-linecap='round'/%3E%3C/svg%3E">
+<style>
+:root{--bg:#f4f3f0;--surface:#fff;--ink:#23262b;--mute:#6b7078;--line:#dedcd6;--accent:#1f3a5f;--accent-ink:#fff;--soft:#eceae5;--danger:#9b2c2c;--ok:#2f6b4f;--warn:#b45309;--shadow:0 1px 2px rgba(20,24,30,.06)}
+@media(prefers-color-scheme:dark){:root:not([data-theme=light]){--bg:#16181b;--surface:#1f2226;--ink:#e8e8e6;--mute:#9aa0a8;--line:#33373d;--accent:#7fa6d6;--accent-ink:#10161d;--soft:#292d32;--danger:#e08a8a;--ok:#7cc2a0;--warn:#f0a95a;--shadow:none}}
+*{box-sizing:border-box}
+html{color-scheme:light dark}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.45 "Segoe UI",system-ui,-apple-system,Roboto,"Helvetica Neue",Arial,sans-serif;padding:env(safe-area-inset-top,0) 0 env(safe-area-inset-bottom,0)}
+.wrap{max-width:1040px;margin:0 auto;padding:16px}
+header.top{flex-wrap:wrap;display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:16px}
+h1{font-size:1.2rem;margin:0;font-weight:650;letter-spacing:-.01em}
+h2{font-size:1.05rem;margin:0}
+button,input,textarea{font:inherit;color:inherit}
+.hacts{display:flex;gap:8px;flex-wrap:wrap}
+.btn{min-height:44px;padding:0 16px;border:1px solid var(--line);background:var(--surface);border-radius:6px;cursor:pointer;font-weight:550}
+.btn:hover{background:var(--soft)}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.btn.primary:hover{opacity:.92}
+.btn.danger{color:var(--danger)}
+.btn.sm{min-height:36px;padding:0 12px;font-size:.88rem}
+.btn:disabled{opacity:.55;cursor:default}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.cards{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:14px;box-shadow:var(--shadow)}
+.card .k{color:var(--mute);font-size:.82rem}
+.card .v{font-size:1.2rem;font-weight:650;margin-top:4px;font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
+.card.lead{border-top:3px solid var(--accent)}
+.bar{display:flex;flex-direction:column;gap:10px;margin-bottom:12px}
+.seg{display:flex;border:1px solid var(--line);border-radius:6px;overflow:hidden;background:var(--surface)}
+.seg button{flex:1;min-height:44px;border:0;background:none;cursor:pointer;font-weight:550;color:var(--mute)}
+.seg button[aria-pressed=true]{background:var(--accent);color:var(--accent-ink)}
+input[type=text],input[type=date],input[type=search],textarea{width:100%;min-height:44px;padding:8px 12px;border:1px solid var(--line);border-radius:6px;background:var(--surface)}
+textarea{min-height:70px;resize:vertical}
+label{display:block;font-size:.85rem;color:var(--mute);margin-bottom:4px}
+.list{display:grid;gap:10px}
+.row{display:grid;grid-template-columns:1fr auto;gap:8px 12px;padding:14px;background:var(--surface);border:1px solid var(--line);border-radius:8px;cursor:pointer;text-align:left;width:100%;box-shadow:var(--shadow)}
+.row:hover{border-color:var(--accent)}
+.row .name{font-weight:650}
+.row .rem{font-weight:650;font-variant-numeric:tabular-nums;text-align:right}
+.row .meta{grid-column:1/-1;display:flex;flex-wrap:wrap;gap:4px 16px;color:var(--mute);font-size:.85rem}
+.row.due-red{border-left:4px solid var(--danger)}.row.due-orange{border-left:4px solid var(--warn)}.row.due-green{border-left:4px solid var(--ok)}
+.dueTxt{font-weight:600}.dueTxt.red{color:var(--danger)}.dueTxt.orange{color:var(--warn)}.dueTxt.green{color:var(--ok)}
+.row.settled{background:var(--soft);box-shadow:none}
+.row.settled .name,.row.settled .rem{color:var(--mute)}
+.tag{font-size:.75rem;border:1px solid var(--line);border-radius:4px;padding:1px 6px;color:var(--mute);margin-left:6px;vertical-align:middle}
+.tag.on{color:var(--ok);border-color:var(--ok)}
+.empty{padding:28px;text-align:center;color:var(--mute);border:1px dashed var(--line);border-radius:8px}
+dialog{border:1px solid var(--line);border-radius:10px;background:var(--surface);color:var(--ink);padding:0;width:min(560px,calc(100vw - 20px));max-height:calc(100vh - 20px);box-shadow:0 12px 40px rgba(0,0,0,.25)}
+dialog::backdrop{background:rgba(15,18,22,.5)}
+.dh{display:flex;justify-content:space-between;align-items:center;padding:14px 16px;border-bottom:1px solid var(--line);position:sticky;top:0;background:var(--surface);z-index:1}
+.db{padding:16px}
+.field{margin-bottom:12px}
+.err{color:var(--danger);font-size:.82rem;margin-top:4px;min-height:1em}
+.foot{display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap;margin-top:8px}
+.stats{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px}
+.stats div{border:1px solid var(--line);border-radius:6px;padding:10px}
+.stats b{display:block;font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
+.stats span{font-size:.8rem;color:var(--mute)}
+.actions{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:16px}
+.pay{padding:12px 0;border-top:1px solid var(--line);display:grid;grid-template-columns:1fr auto;gap:4px 10px}
+.pay .amt{font-weight:650;font-variant-numeric:tabular-nums;text-align:right}
+.pay .sub{color:var(--mute);font-size:.85rem;grid-column:1/-1}
+.pay .acts{grid-column:1/-1;display:flex;gap:8px}
+.note{font-size:.85rem;color:var(--mute);margin:0 0 12px}
+#toast{position:fixed;left:50%;bottom:calc(16px + env(safe-area-inset-bottom,0));transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:6px;font-size:.9rem;opacity:0;pointer-events:none;transition:opacity .2s;z-index:100;max-width:90vw}
+#toast.show{opacity:1}
+@media(min-width:720px){.wrap{padding:28px}.cards{grid-template-columns:repeat(4,1fr)}.card .v{font-size:1.45rem}.bar{flex-direction:row;align-items:center}.bar .seg{width:260px;flex:none}.bar .grow{flex:1}.row{grid-template-columns:1.4fr 1fr 1fr 1fr 1fr;align-items:center}.row .meta{display:contents}.row .rem{grid-column:5;grid-row:1}.row .name{grid-column:1;grid-row:1}.row .meta span{font-size:.9rem}}
+@media(prefers-reduced-motion:reduce){#toast{transition:none}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top"><h1>Personal Bills &amp; Debt Tracker</h1>
+    <div class="hacts"><button class="btn" id="exportBtn" type="button">Export</button><button class="btn" id="importBtn" type="button">Import</button><button class="btn primary" id="addBiller" type="button">Add biller</button></div>
+    <input type="file" id="importFile" accept="application/json,.json" hidden></header>
+  <section class="cards" id="summary" aria-label="Summary"></section>
+  <section aria-label="Billers">
+    <div class="bar">
+      <div class="seg" role="group" aria-label="Filter" id="filters"></div>
+      <div class="grow"><label for="search" class="sr" style="position:absolute;left:-9999px">Search billers</label><input type="search" id="search" placeholder="Search billers by name" autocomplete="off"></div>
+    </div>
+    <div class="list" id="list"></div>
+  </section>
+</div>
+<dialog id="dDetail" aria-labelledby="detailTitle"></dialog>
+<dialog id="dForm" aria-labelledby="formTitle"></dialog>
+<dialog id="dConfirm" aria-labelledby="confirmTitle"></dialog>
+<div id="toast" role="status" aria-live="polite"></div>
+
+<script>
+'use strict';
+/* ===== Data model =====
+   state = { version, billers: [ { id, name, category, original(cents), limit(cents|null), due('YYYY-MM-DD'|''),
+   notes, status('active'|'settled'), settledAt, payments: [ { id, amount(cents), date('YYYY-MM-DD'|''), note, by } ] } ] }
+   All money is stored as integer cents; totals are always derived from records. */
+const KEY = 'personalBillsTracker', VERSION = 1;
+let state = load(), filter = 'active', query = '', openId = null;
+
+const uid = () => 'id' + Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
+const today = () => { const d = new Date(); return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'); };
+
+/* ===== Seed ===== */
+function seed() {
+  const p = (id, amount, date, note, by) => ({ id, amount, date, note: note || '', by: by || '' });
+  const b = (id, name, original, o) => Object.assign({ id, name, category: '', original, limit: null, due: '', notes: '', status: 'active', settledAt: null, payments: [] }, o);
+  return { version: VERSION, billers: [
+    b('unionbank', 'UNIONBANK CC', 7562102, { category: 'Credit card', limit: 9700000, due: '2026-12-01', payments: [p('u1', 3000000, '2026-11-13'), p('u2', 500000, '2026-11-13'), p('u3', 500000, '2026-11-20')] }),
+    b('bdo', 'BDO CC', 564183, { category: 'Credit card', status: 'settled', settledAt: '2026-11-12', payments: [p('b1', 141100, '2026-10-22'), p('b2', 211600, '2026-11-08'), p('b3', 211600, '2026-11-12')] }),
+    b('pldtllc', 'PLDT LLC', 155800, { category: 'Utilities' }),
+    b('pldtdita', 'PLDT DITA', 169900, { category: 'Utilities' }),
+    b('mariloan', 'MARILOAN', 81440, { category: 'Loan', payments: [p('m1', 27184, '', 'Payment date not yet confirmed')] }),
+    b('veco', 'VECO', 527090, { category: 'Utilities', payments: [p('v1', 127090, '2026-11-19'), p('v2', 100000, '2026-11-20', '', 'Gabby paid')] })
+  ] };
+}
+function load() {
+  try {
+    const raw = localStorage.getItem(KEY);
+    if (raw) { const s = JSON.parse(raw); if (s && Array.isArray(s.billers)) return migrate(s); }
+  } catch (e) { /* fall through to seed only if nothing readable exists */ }
+  let existing = null; try { existing = localStorage.getItem(KEY); } catch (e) {}
+  const s = existing ? { version: VERSION, billers: [] } : seed();
+  try { localStorage.setItem(KEY, JSON.stringify(s)); } catch (e) {}
+  return s;
+}
+function migrate(s) { /* hook for future versions */ s.version = s.version || VERSION; return s; }
+function save() { try { localStorage.setItem(KEY, JSON.stringify(state)); } catch (e) { toast('Could not save: browser storage is unavailable'); } }
+
+/* ===== Money helpers (integer cents) ===== */
+const fmtNum = c => (c / 100).toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+const money = c => '\u20B1' + fmtNum(c);
+function toCents(str) {
+  const s = String(str).replace(/PHP|\u20B1|,|\s/gi, '');
+  if (!/^\d+(\.\d{1,2})?$/.test(s)) return null;
+  const [w, f = ''] = s.split('.');
+  return parseInt(w, 10) * 100 + parseInt((f + '00').slice(0, 2), 10);
+}
+const fmtDate = d => d ? new Date(+d.slice(0, 4), +d.slice(5, 7) - 1, +d.slice(8, 10)).toLocaleDateString('en-PH', { year: 'numeric', month: 'short', day: 'numeric' }) : 'Date not specified';
+
+/* ===== Calculations (always derived from records) ===== */
+const paid = b => b.payments.reduce((s, p) => s + p.amount, 0);
+const remaining = b => b.status === 'settled' ? 0 : Math.max(0, b.original - paid(b));
+const overpaid = b => Math.max(0, paid(b) - b.original);
+function chrono(b) { // oldest first; undated and same-day keep entry order
+  return b.payments.map((p, i) => ({ p, i })).sort((a, c) => (a.p.date || '').localeCompare(c.p.date || '') || a.i - c.i).map(x => x.p);
+}
+function history(b) { // newest first, with balance after each payment
+  let bal = b.original;
+  return chrono(b).map(p => { bal = Math.max(0, bal - p.amount); return { p, after: b.status === 'settled' && false ? 0 : bal }; }).reverse();
+}
+function totals() {
+  const a = state.billers.filter(b => b.status === 'active');
+  return { out: a.reduce((s, b) => s + remaining(b), 0), paid: state.billers.reduce((s, b) => s + paid(b), 0), active: a.length, settled: state.billers.length - a.length };
+}
+
+/* ===== Safe DOM builder (text only, never HTML) ===== */
+function h(tag, attrs, ...kids) {
+  const e = document.createElement(tag);
+  for (const k in (attrs || {})) {
+    if (k === 'class') e.className = attrs[k];
+    else if (k.startsWith('on')) e.addEventListener(k.slice(2), attrs[k]);
+    else if (attrs[k] !== false && attrs[k] != null) e.setAttribute(k, attrs[k]);
+  }
+  kids.flat().forEach(c => { if (c != null && c !== false) e.append(c.nodeType ? c : document.createTextNode(c)); });
+  return e;
+}
+const $ = id => document.getElementById(id);
+let toastT;
+function toast(msg) { const t = $('toast'); t.textContent = msg; t.classList.add('show'); clearTimeout(toastT); toastT = setTimeout(() => t.classList.remove('show'), 2200); }
+
+/* ===== Due date status: red = due today or overdue, orange = within 7 days, green = further out ===== */
+const SOON_DAYS = 7;
+function daysUntil(due) {
+  const n = new Date(), t = new Date(n.getFullYear(), n.getMonth(), n.getDate());
+  return Math.round((new Date(+due.slice(0, 4), +due.slice(5, 7) - 1, +due.slice(8, 10)) - t) / 86400000);
+}
+const dueKey = b => b.status === 'active' && b.due ? daysUntil(b.due) : Infinity; // no due date sorts last
+function dueInfo(b) {
+  if (b.status !== 'active' || !b.due) return null;
+  const n = daysUntil(b.due), level = n <= 0 ? 'red' : n <= SOON_DAYS ? 'orange' : 'green';
+  const label = n < 0 ? 'Overdue by ' + (-n) + (n === -1 ? ' day' : ' days') + ' (' + fmtDate(b.due) + ')'
+    : n === 0 ? 'Due today (' + fmtDate(b.due) + ')' : 'Due ' + fmtDate(b.due) + ' (' + n + (n === 1 ? ' day' : ' days') + ')';
+  return { level, label };
+}
+
+/* ===== Main render ===== */
+function render() {
+  const t = totals();
+  $('summary').replaceChildren(
+    ...[['Total outstanding balance', money(t.out), 'lead'], ['Total amount paid', money(t.paid), ''], ['Active billers', String(t.active), ''], ['Settled billers', String(t.settled), '']]
+      .map(([k, v, c]) => h('div', { class: 'card ' + c }, h('div', { class: 'k' }, k), h('div', { class: 'v' }, v))));
+  $('filters').replaceChildren(...[['all', 'All'], ['active', 'Active'], ['settled', 'Settled']].map(([k, l]) =>
+    h('button', { type: 'button', 'aria-pressed': String(filter === k), onclick: () => { filter = k; render(); } }, l)));
+  const q = query.trim().toLowerCase();
+  const items = state.billers.filter(b => (filter === 'all' || b.status === filter) && b.name.toLowerCase().includes(q))
+    .sort((a, b) => (a.status === 'settled') - (b.status === 'settled') || dueKey(a) - dueKey(b) || remaining(b) - remaining(a) || a.name.localeCompare(b.name));
+  $('list').replaceChildren(...(items.length ? items.map(row) : [h('div', { class: 'empty' }, state.billers.length ? 'No billers match this view.' : 'No billers yet. Select Add biller to create one.')]));
+  if (openId) renderDetail();
+}
+function row(b) {
+  const st = b.status === 'settled', di = dueInfo(b);
+  return h('button', { type: 'button', class: 'row' + (st ? ' settled' : '') + (di ? ' due-' + di.level : ''), onclick: () => { openId = b.id; renderDetail(); const d = $('dDetail'); if (!d.open) d.showModal(); } },
+    h('span', { class: 'name' }, b.name, h('span', { class: 'tag' + (st ? '' : ' on') }, st ? 'Settled' : 'Active')),
+    h('span', { class: 'rem' }, money(remaining(b))),
+    h('span', { class: 'meta' },
+      h('span', null, 'Original ' + money(b.original)),
+      h('span', null, 'Paid ' + money(paid(b))),
+      di ? h('span', { class: 'dueTxt ' + di.level }, di.label) : h('span', null, st && b.settledAt ? 'Settled ' + fmtDate(b.settledAt) : '')));
+}
+
+/* ===== Detail view ===== */
+function renderDetail() {
+  const b = state.billers.find(x => x.id === openId), d = $('dDetail');
+  if (!b) { if (d.open) d.close(); openId = null; return; }
+  const st = b.status === 'settled', hist = history(b);
+  const stat = (k, v) => h('div', null, h('span', null, k), h('b', null, v));
+  d.replaceChildren(
+    h('div', { class: 'dh' }, h('h2', { id: 'detailTitle' }, b.name), h('button', { class: 'btn sm', type: 'button', onclick: () => d.close() }, 'Close')),
+    h('div', { class: 'db' },
+      h('div', { class: 'stats' },
+        stat('Original balance', money(b.original)), stat('Total paid', money(paid(b))),
+        stat('Remaining balance', money(remaining(b))), stat('Status', st ? 'Settled' + (b.settledAt ? ' on ' + fmtDate(b.settledAt) : '') : 'Active'),
+        b.limit != null && stat('Credit limit', money(b.limit)), b.due && stat('Due date', dueInfo(b) ? dueInfo(b).label : fmtDate(b.due)), b.category && stat('Category', b.category)),
+      overpaid(b) > 0 && h('p', { class: 'note' }, 'Recorded payments exceed the original balance by ' + money(overpaid(b)) + '. Remaining balance is shown as zero.'),
+      b.notes && h('p', { class: 'note' }, 'Notes: ' + b.notes),
+      h('div', { class: 'actions' },
+        !st && h('button', { class: 'btn primary', type: 'button', onclick: () => paymentForm(b) }, 'Add payment'),
+        h('button', { class: 'btn', type: 'button', onclick: () => billerForm(b) }, 'Edit biller'),
+        !st && h('button', { class: 'btn', type: 'button', onclick: () => settle(b) }, 'Mark as settled'),
+        st && h('button', { class: 'btn', type: 'button', onclick: () => reactivate(b) }, 'Reactivate account'),
+        h('button', { class: 'btn danger', type: 'button', onclick: () => removeBiller(b) }, 'Delete biller')),
+      h('h2', null, 'Payment history'),
+      hist.length ? hist.map(({ p, after }) => h('div', { class: 'pay' },
+        h('div', null, fmtDate(p.date)), h('div', { class: 'amt' }, money(p.amount)),
+        h('div', { class: 'sub' }, ['Balance after: ' + money(after), p.by && 'Paid by: ' + p.by, p.note && 'Note: ' + p.note].filter(Boolean).join('  |  ')),
+        h('div', { class: 'acts' },
+          h('button', { class: 'btn sm', type: 'button', onclick: () => paymentForm(b, p) }, 'Edit'),
+          h('button', { class: 'btn sm danger', type: 'button', onclick: () => confirmBox('Delete payment', 'Delete the ' + money(p.amount) + ' payment? The balance will be recalculated.', 'Delete', () => { b.payments = b.payments.filter(x => x.id !== p.id); save(); render(); toast('Payment deleted'); }) }, 'Delete'))))
+        : h('div', { class: 'empty' }, 'No payments recorded.'))
+  );
+}
+
+/* ===== Generic form modal ===== */
+function formModal(title, fields, submitLabel, onSubmit) {
+  const d = $('dForm'), inputs = {};
+  const form = h('form', { novalidate: 'novalidate' });
+  fields.forEach(f => {
+    const id = 'f_' + f.name, err = h('div', { class: 'err', id: id + '_e' });
+    const el = f.type === 'textarea' ? h('textarea', { id, maxlength: 300 }) : h('input', { id, type: f.type === 'money' ? 'text' : (f.type || 'text'), inputmode: f.type === 'money' ? 'decimal' : null, autocomplete: 'off', maxlength: f.type === 'date' ? null : 120 });
+    el.value = f.value || '';
+    if (f.type === 'money') { // format as peso amount on blur, raw on focus
+      el.addEventListener('blur', () => { const c = toCents(el.value); if (c !== null) el.value = 'PHP ' + fmtNum(c); });
+      el.addEventListener('focus', () => { const c = toCents(el.value); if (c !== null) el.value = (c / 100).toFixed(2).replace(/\.00$/, ''); el.select(); });
+      if (el.value) el.dispatchEvent(new Event('blur'));
+    }
+    inputs[f.name] = { el, err, f };
+    form.append(h('div', { class: 'field' }, h('label', { for: id }, f.label + (f.required ? '' : ' (optional)')), el, err));
+  });
+  const submit = h('button', { class: 'btn primary', type: 'submit' }, submitLabel);
+  form.append(h('div', { class: 'foot' }, h('button', { class: 'btn', type: 'button', onclick: () => d.close() }, 'Cancel'), submit));
+  let busy = false;
+  form.addEventListener('submit', ev => {
+    ev.preventDefault(); if (busy) return;
+    const out = {}; let ok = true;
+    for (const n in inputs) {
+      const { el, err, f } = inputs[n]; err.textContent = '';
+      let v = el.value.trim();
+      if (f.type === 'money') {
+        if (!v && !f.required) { out[n] = null; continue; }
+        const c = toCents(v);
+        if (c === null) { err.textContent = 'Enter a valid amount with up to two decimals.'; ok = false; continue; }
+        if (f.positive !== false && c <= 0 && (f.required)) { err.textContent = 'Amount must be greater than zero.'; ok = false; continue; }
+        if (f.max != null && c > f.max) { err.textContent = 'Cannot exceed the outstanding balance of ' + money(f.max) + '.'; ok = false; continue; }
+        v = c;
+      } else if (f.required && !v) { err.textContent = 'This field is required.'; ok = false; continue; }
+      out[n] = v;
+    }
+    if (!ok) { const first = form.querySelector('.err:not(:empty)'); if (first) first.previousElementSibling.focus(); return; }
+    busy = true; submit.disabled = true; // block repeat submissions
+    onSubmit(out); d.close();
+  });
+  d.replaceChildren(h('div', { class: 'dh' }, h('h2', { id: 'formTitle' }, title)), h('div', { class: 'db' }, form));
+  d.showModal(); inputs[fields[0].name].el.focus();
+}
+
+/* ===== Biller actions ===== */
+function billerForm(b) {
+  formModal(b ? 'Edit biller' : 'Add biller', [
+    { name: 'name', label: 'Biller name', required: true, value: b && b.name },
+    { name: 'category', label: 'Category', value: b && b.category },
+    { name: 'original', label: 'Original balance', type: 'money', required: true, value: b ? (b.original / 100).toFixed(2) : '' },
+    { name: 'limit', label: 'Credit limit', type: 'money', value: b && b.limit != null ? (b.limit / 100).toFixed(2) : '' },
+    { name: 'due', label: 'Due date', type: 'date', value: b && b.due },
+    { name: 'notes', label: 'Notes', type: 'textarea', value: b && b.notes }
+  ], 'Save biller', v => {
+    const data = { name: v.name, category: v.category, original: v.original, limit: v.limit, due: v.due, notes: v.notes };
+    if (b) Object.assign(b, data);
+    else state.billers.push(Object.assign({ id: uid(), status: 'active', settledAt: null, payments: [] }, data));
+    save(); render(); toast(b ? 'Biller updated' : 'Biller added');
+  });
+}
+function paymentForm(b, p) {
+  // Allowed maximum: current remaining (plus the amount being edited)
+  const max = Math.max(0, b.original - (paid(b) - (p ? p.amount : 0)));
+  formModal(p ? 'Edit payment' : 'Add payment', [
+    { name: 'amount', label: 'Payment amount', type: 'money', required: true, max, value: p ? (p.amount / 100).toFixed(2) : '' },
+    { name: 'date', label: 'Payment date', type: 'date', required: !!(p && p.date) || !p, value: p ? p.date : today() },
+    { name: 'note', label: 'Payment note', value: p && p.note },
+    { name: 'by', label: 'Paid by', value: p && p.by }
+  ], 'Save payment', v => {
+    if (p) Object.assign(p, { amount: v.amount, date: v.date, note: v.note, by: v.by });
+    else b.payments.push({ id: uid(), amount: v.amount, date: v.date, note: v.note, by: v.by });
+    save(); render(); toast(p ? 'Payment updated' : 'Payment recorded');
+  });
+}
+function settle(b) {
+  const go = () => { b.status = 'settled'; b.settledAt = today(); save(); render(); toast('Account marked as settled'); };
+  remaining(b) > 0 ? confirmBox('Mark as settled', b.name + ' still has ' + money(remaining(b)) + ' outstanding. Settle it anyway? Payment records and the original balance are kept.', 'Mark as settled', go) : go();
+}
+function reactivate(b) { b.status = 'active'; b.settledAt = null; save(); render(); toast('Account reactivated'); }
+function removeBiller(b) {
+  confirmBox('Delete biller', 'Delete ' + b.name + ' and all of its payment history? This cannot be undone.', 'Delete', () => {
+    state.billers = state.billers.filter(x => x.id !== b.id); save(); $('dDetail').close(); openId = null; render(); toast('Biller deleted');
+  });
+}
+function confirmBox(title, msg, label, fn) {
+  const d = $('dConfirm');
+  d.replaceChildren(h('div', { class: 'dh' }, h('h2', { id: 'confirmTitle' }, title)),
+    h('div', { class: 'db' }, h('p', { style: 'margin-top:0' }, msg),
+      h('div', { class: 'foot' }, h('button', { class: 'btn', type: 'button', onclick: () => d.close() }, 'Cancel'),
+        h('button', { class: 'btn primary', type: 'button', onclick: () => { d.close(); fn(); } }, label))));
+  d.showModal();
+}
+
+/* ===== JSON import / export ===== */
+const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
+function normalize(raw) { // validate and rebuild an imported file; throws on invalid data
+  if (!raw || !Array.isArray(raw.billers)) throw new Error('Missing billers list');
+  const cents = (v, min) => { if (!Number.isInteger(v) || v < min) throw new Error('Invalid amount'); return v; };
+  const str = v => typeof v === 'string' ? v.slice(0, 300) : '';
+  const date = v => { if (v === '' || v == null) return ''; if (!DATE_RE.test(v)) throw new Error('Invalid date'); return v; };
+  const seen = new Set();
+  return { version: VERSION, billers: raw.billers.map(b => {
+    if (!b || typeof b.name !== 'string' || !b.name.trim()) throw new Error('A biller has no name');
+    let id = typeof b.id === 'string' && b.id && !seen.has(b.id) ? b.id : uid(); seen.add(id);
+    const settled = b.status === 'settled';
+    return { id, name: b.name.trim().slice(0, 120), category: str(b.category), original: cents(b.original, 0),
+      limit: b.limit == null ? null : cents(b.limit, 0), due: date(b.due), notes: str(b.notes),
+      status: settled ? 'settled' : 'active', settledAt: settled ? date(b.settledAt) || null : null,
+      payments: (Array.isArray(b.payments) ? b.payments : []).map(p => ({ id: typeof p.id === 'string' && p.id ? p.id : uid(), amount: cents(p.amount, 1), date: date(p.date), note: str(p.note), by: str(p.by) })) };
+  }) };
+}
+function exportData() {
+  const blob = new Blob([JSON.stringify(state, null, 2)], { type: 'application/json' });
+  const a = h('a', { href: URL.createObjectURL(blob), download: 'bills-tracker-backup-' + today() + '.json' });
+  document.body.append(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+  toast('Backup exported');
+}
+function importData(file) {
+  const r = new FileReader();
+  r.onload = () => {
+    let next;
+    try { next = normalize(JSON.parse(r.result)); } catch (e) { confirmBox('Import failed', 'This file is not a valid tracker backup (' + e.message + '). Your current data was not changed.', 'OK', () => {}); return; }
+    confirmBox('Replace current data', 'Import ' + next.billers.length + ' billers from ' + file.name + '? This replaces all data currently in the tracker. Export first if you want to keep it.', 'Replace data', () => { state = next; save(); render(); toast('Data imported'); });
+  };
+  r.onerror = () => toast('Could not read the file');
+  r.readAsText(file);
+}
+
+/* ===== Wiring ===== */
+$('exportBtn').addEventListener('click', exportData);
+$('importBtn').addEventListener('click', () => $('importFile').click());
+$('importFile').addEventListener('change', e => { const f = e.target.files[0]; e.target.value = ''; if (f) importData(f); });
+$('addBiller').addEventListener('click', () => billerForm(null));
+$('search').addEventListener('input', e => { query = e.target.value; render(); });
+$('dDetail').addEventListener('close', () => { openId = null; });
+['dDetail', 'dForm', 'dConfirm'].forEach(id => $(id).addEventListener('click', e => { if (e.target === e.currentTarget) e.currentTarget.close(); }));
+render();
+</script>
+</body>
+</html>
